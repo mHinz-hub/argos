@@ -1,3 +1,4 @@
+import GLib from 'gi://GLib';
 // submenu_state.js
 export default class SubmenuState {
   constructor() { this._openKeys = new Set(); }
@@ -15,10 +16,16 @@ export default class SubmenuState {
     this._capture(button.menu);
   }
   
-  finalizeUpadte(button) {
+  finalizeUpdate(button) {
+    if (!button._reopenAfterAction) return;
+    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+      button.menu.open(false);
+      return GLib.SOURCE_REMOVE;
+    });
+    button._reopenAfterAction = false;
     this._openKeys.clear();
   }
-  
+    
   _capture(rootMenu) {
     this._openKeys.clear();
     this._walk(rootMenu, item => {
