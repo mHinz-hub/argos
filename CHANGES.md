@@ -26,12 +26,25 @@ The goal is to stay compatible with existing scripts while making the extension 
   - A new helper class `submenu_state.js` manages capture/restore of submenu states.  
   - Internally, `GLib.idle_add` is used to ensure restoration happens after the rebuild, avoiding race conditions.
 
+### 2. Reopen Menu After Action
+- **Problem:** After running a command from the menu, the menu always closed. For certain workflows (e.g., toggles or quick repeat actions), this was disruptive.  
+- **Solution:**  
+  - Scripts can now add the property `reopen=true` to a line.  
+  - After executing the action, the menu automatically reopens with updated state.  
+  - Works only for `bash` commands.  
+
+- **Technical details:**  
+  - Integrated into `submenu_state.js` via `requestReopen()` and `finalizeUpdate()`.  
+  - `GLib.idle_add` ensures the reopen happens after the rebuild, minimizing flicker.  
+  - Backward compatible: lines without `reopen=true` behave as before.
+
 ---
 
 ## Internal Changes
 
 - Code for tracking/restoring submenu state was moved out of `button.js` into a **dedicated utility class**.  
 - Refactored parts of the menu update logic for better maintainability.  
+- Centralized `reopen` handling in `submenu_state.js` instead of scattering flag checks across `button.js` and `menuitem.js`.
 
 ---
 
@@ -40,12 +53,10 @@ The goal is to stay compatible with existing scripts while making the extension 
 - Only one submenu can be open at a time (GNOME Shell limitation).  
 - Restoring an open submenu causes a short re-animation (visible “flicker”) because the menu is rebuilt.  
 - Without an `id` property in the script line, no state is restored.  
+- Menu reopen still causes a very short flicker, as the menu must be rebuilt before reopening.
 
 ---
 
 ## Planned Features
 
-- **Re-open after command:** Option to keep the menu open after executing an action, or automatically reopen it (e.g., after toggling the kill switch).  
 - **Fixed minimum width:** Option to prevent the menu width from jumping when expanding/collapsing submenus.  
-
----
