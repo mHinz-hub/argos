@@ -32,6 +32,8 @@ class ArgosButton extends PanelMenu.Button {
     this._file = file;
     this._updateInterval = settings.updateInterval;
     this._subs = new SubmenuState();
+    this._reopenAfterAction = false;
+
 
     this._lineView = new ArgosLineView();
     this._lineView.setMarkup("<small><i>" + GLib.markup_escape_text(file.get_basename(), -1) + " ...</i></small>");
@@ -133,7 +135,7 @@ class ArgosButton extends PanelMenu.Button {
         buttonLines.push(line);
       }
     }
-    this._subs.capture(this.menu);
+    this._subs.prepareForUpdate(this);
     this.menu.removeAll();
 
     if (this._cycleTimeout !== null) {
@@ -213,7 +215,6 @@ class ArgosButton extends PanelMenu.Button {
      if (menuItem._submenuKey && this._subs.wasOpen(menuItem._submenuKey)) {
         GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
             menuItem.menu.open(false); 
-            //menuItem.setSubmenuShown(true);
             return GLib.SOURCE_REMOVE;
         });
      }
@@ -230,6 +231,14 @@ class ArgosButton extends PanelMenu.Button {
     });
 
     this.menu.addMenuItem(menuItem);
+    this._subs.finalizeUpadte(this);
+    if (this._reopenAfterAction) {
+      GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+        this.menu.open(false);           // ohne Animation → minimaler Flicker
+        this._reopenAfterAction = false;
+        return GLib.SOURCE_REMOVE;
+      });
+    }
   }
 });
 
