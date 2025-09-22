@@ -192,8 +192,15 @@ class ArgosButton extends PanelMenu.Button {
         // an error or warning, this should be considered a bug in GNOME Shell.
         // Once it is fixed, this code will work as expected for nested submenus.
         menuItem = new PopupMenu.PopupSubMenuMenuItem("", false);
+        //add optional support for restore after refresh
         if (dropdownLines[i].id) {
           menuItem._submenuKey = dropdownLines[i].id;
+        }
+        if (dropdownLines[i].minwidth) {
+          const px = parseInt(dropdownLines[i].minwidth, 10);
+          if (Number.isFinite(px) && px > 0) {
+            menuItem.actor.set_style(`min-width:${px}px;`);
+          }
         }
         let lineView = new ArgosLineView(dropdownLines[i]);
         menuItem.actor.insert_child_below(lineView, menuItem.label);
