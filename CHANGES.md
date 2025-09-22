@@ -38,13 +38,33 @@ The goal is to stay compatible with existing scripts while making the extension 
   - `GLib.idle_add` ensures the reopen happens after the rebuild, minimizing flicker.  
   - Backward compatible: lines without `reopen=true` behave as before.
 
+### 3. Minimum Width for Submenus
+- **Problem:** When menu entries of different length appear or disappear during refresh, the whole dropdown width jumps, leading to a distracting UI flicker.  
+- **Solution:**  
+  - Scripts can now specify a minimum width in pixels for submenu headers using a `minwidth` property:  
+
+    ```text
+    -- Status | id=status minwidth=360
+    ---- Connected
+    ---- Last handshake: 2m ago
+    ```
+
+  - The `minwidth` value is applied as a hard CSS `min-width` on the corresponding `PopupSubMenuMenuItem`.  
+  - Other items remain dynamic, only the submenu header defines the lower bound for its content.
+
+- **Technical details:**  
+  - Applied directly when creating a `PopupSubMenuMenuItem` in `button.js`.  
+  - Backward compatible: lines without `minwidth` behave as before.  
+  - Prevents width “jumping” when submenu content changes.
+
 ---
 
 ## Internal Changes
 
 - Code for tracking/restoring submenu state was moved out of `button.js` into a **dedicated utility class**.  
 - Refactored parts of the menu update logic for better maintainability.  
-- Centralized `reopen` handling in `submenu_state.js` instead of scattering flag checks across `button.js` and `menuitem.js`.
+- Centralized `reopen` handling in `submenu_state.js` instead of scattering flag checks across `button.js` and `menuitem.js`.  
+- Added support for per-submenu `minwidth` property.
 
 ---
 
@@ -53,10 +73,7 @@ The goal is to stay compatible with existing scripts while making the extension 
 - Only one submenu can be open at a time (GNOME Shell limitation).  
 - Restoring an open submenu causes a short re-animation (visible “flicker”) because the menu is rebuilt.  
 - Without an `id` property in the script line, no state is restored.  
-- Menu reopen still causes a very short flicker, as the menu must be rebuilt before reopening.
+- Menu reopen still causes a very short flicker, as the menu must be rebuilt before reopening.  
+- Minimum width applies only to submenu headers (`PopupSubMenuMenuItem`), not to the entire dropdown or the panel button.
 
 ---
-
-## Planned Features
-
-- **Fixed minimum width:** Option to prevent the menu width from jumping when expanding/collapsing submenus.  
