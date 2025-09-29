@@ -216,6 +216,7 @@ class ArgosButton extends PanelMenu.Button {
       } else {
         menuItem = new ArgosMenuItem(this, dropdownLines[i]);
       }
+
       menu.addMenuItem(menuItem);
      if (menuItem._submenuKey && this._subs.wasOpen(menuItem._submenuKey)) {
         GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
